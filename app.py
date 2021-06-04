@@ -1,4 +1,4 @@
-from flask import Flas
+from flask import Flask
 from gevent.pywsgi import WSGIServer
 import click
 import requests
