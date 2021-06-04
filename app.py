@@ -3,7 +3,7 @@ from gevent.pywsgi import WSGIServer
 import click
 import requests
 import zerorpc
-from web import webapp
+from web import webap
 from node import LocalNode,RemoteNode
 
 class PsDashRunner():
