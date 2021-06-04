@@ -1,5 +1,4 @@
 import zerorpc
-
 class Node(object):
     def __init__(self):
         self.service = None
@@ -13,20 +12,20 @@ class Node(object):
         return self.service
 
 
+class RemoteNode(Node):
+    def __init__(self,host,port):
+        self.host = host
+        self.port = int(port)
+
+    def create_service(self):
+        client = zerorpc.Client()
+        client.connect('tcp://%s:%s' % (self.host, self.port))
+        return client
 
 
 
 class LocalService(object):
-    def __init__(self):
-        self._service = None
-
-    def _create_service(self):
-        raise NotImplementedError
-
-    def get_service(self):
-        if not self._service:
-            self._service = self._create_service()
-        return self._service
+    pass
 
 class LocalNode(Node):
     def create_service(self):

@@ -1,19 +1,15 @@
 from flask import Flask
-from logging import getLogger
 from gevent.pywsgi import WSGIServer
 import click
 import requests
 import zerorpc
-from tset import webapp
-from node import LocalNode
-
-logger = getLogger('psdash.run_web')
+from web import webapp
+from node import LocalNode,RemoteNode
 
 class PsDashRunner():
 
-
     def __init__(self, *args, **kwargs):
-        self.post = kwargs['post']
+        self.port = kwargs['port']
         self.host = kwargs['host']
         self.name = kwargs['name']
         self.rpc = kwargs['rpc']
@@ -27,42 +23,42 @@ class PsDashRunner():
         app.register_blueprint(webapp)
         self.app=app
 
+    def register_agent(slef,node,name):   #作为rpc server 启动时，向http server 注册
+        print(f"已注册 {node}")
+        host,port= node.split(":")
+        slef._nodes[f'{name}:{node}']=RemoteNode(host,port)   #远端数据存储
 
-    def get_local_node(self):
-        return self._nodes.get(self.host)
+
 
     def _run_web(self):
         self.create_app()
-        print(self.name)
+        print('name:',self.name)
         print('PSDASH_BIND_HOST:', self.host),
-        print('PSDASH_PORT:', self.post)
-        self._nodes[f"{self.name}:localnode:{self.post}"]= self.local
-        self.server = WSGIServer(
-            (self.host,self.post),
-            application=self.app,
-        )
+        print('PSDASH_PORT:', self.port)
+
+        self._nodes[f"{self.name}:localnode:{self.port}"]= self.local
+        self.server = WSGIServer((self.host,self.port),application=self.app,)
         self.server.serve_forever()
 
 
     def run_as_rpc(self):
-        print('启动{}:{}rpc server'.format(self.host,self.post))
+        print('启动{}:{}rpc server'.format(self.host,self.port))
 
-        service = self.get_local_node().get_service()
-#        requests.get(self.rpc + f"/register?port={self.post}&name={self.name}")
+        service = self.local.get_service()
+        requests.get(self.rpc + f"/register?port={self.port}&name={self.name}")
         self.server = zerorpc.Server(service)
-        self.server.bind('tcp://%s:%s' %({self.host},{self.post}))
+
+        self.server.bind('tcp://%s:%s' %(self.host,self.port))
         self.server.run()
 
 
-
 @click.command()
-@click.option('-a', '--rpc', default='None', help='启动代理注册')
+@click.option('-a', '--rpc', default=None, help='启动代理注册')
 @click.option('-h', '--host', default='0.0.0.0', help='host')
-@click.option('-p', '--post',type=int, default=5000, help='post')
+@click.option('-p', '--port',type=int, default=5000, help='port')
 @click.option('-n', '--name', default='localhost', help='节点名字')
-def aa(name,host,post,rpc):
+def aa(name,host,port,rpc):
     run = PsDashRunner(**locals())
-    run._run_web()
 
     if rpc :
         run.run_as_rpc()
