@@ -3,30 +3,41 @@ from gevent.pywsgi import WSGIServer
 import click
 import requests
 import zerorpc
-from web import webap
+from web import webapp ,_webapp
 from node import LocalNode,RemoteNode
+import psutil
 
 class PsDashRunner():
 
     def __init__(self, *args, **kwargs):
-        self.port = kwargs['port']
+        self.port = int(kwargs['port'])
         self.host = kwargs['host']
         self.name = kwargs['name']
         self.rpc = kwargs['rpc']
         self.local = LocalNode()
         self._nodes = {}
+        self._Node={}
+        self._memory= {}
 
     def create_app(self):
 
         app = Flask(__name__)
+        app.config["JSON_AS_ASCII"] = False  # 中文显示
         app.psdash = self
         app.register_blueprint(webapp)
         self.app=app
 
-    def register_agent(slef,node,name):   #作为rpc server 启动时，向http server 注册
+    def register_agent(self,node,name):   #作为rpc server 启动时，向http server 注册
         print(f"已注册 {node}")
+        print(name)
         host,port= node.split(":")
-        slef._nodes[f'{name}:{node}']=RemoteNode(host,port)   #远端数据存储
+        self._nodes[f'{name}:{node}']=RemoteNode(host,port)   #远端数据存储
+        self._Node[name]={'time':LocalNode()._time()}
+        self._Node[name]['memory'] = psutil.virtual_memory()
+        self._Node[name]['Network']=LocalNode().Network()
+        self._Node[name]['Process'] = LocalNode().Process()
+        self._Node[name]['disk'] = LocalNode().Magnetic_disk()
+        self._memory[f'{name}']=psutil.virtual_memory()
 
 
 
@@ -46,6 +57,7 @@ class PsDashRunner():
 
         service = self.local.get_service()
         requests.get(self.rpc + f"/register?port={self.port}&name={self.name}")
+
         self.server = zerorpc.Server(service)
 
         self.server.bind('tcp://%s:%s' %(self.host,self.port))
@@ -59,7 +71,6 @@ class PsDashRunner():
 @click.option('-n', '--name', default='localhost', help='节点名字')
 def aa(name,host,port,rpc):
     run = PsDashRunner(**locals())
-
     if rpc :
         run.run_as_rpc()
     else:
