@@ -17,6 +17,7 @@ class Node(object):
 
 class RemoteNode(Node):
     def __init__(self,host,port):
+        super(RemoteNode, self).__init__()
         self.host = host
         self.port = int(port)
 
@@ -28,13 +29,20 @@ class RemoteNode(Node):
 
 
 class LocalService(object):
-    def get_memory(self):
-        return psutil.virtual_memory()
+    def __init__(self,node):
+        self.node=node
 
-class LocalNode(Node):
-    def create_service(self):
-        return  LocalService()
-    def _time(self):
+    def get_memory(self):
+        memory = psutil.virtual_memory()
+        s = {
+            "name": self.node.name,
+            "memory": f"{memory.total / 1073741824:.2f}GB",
+            "used": f"{memory.used / 1073741824:.2f}GB",
+            "surplus": f"{memory.free / 1073741824:2f}GB"
+        }
+        return s
+
+    def htime(self):
         # 转换成自然时间格式
         Time={'time':datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H: %M: %S")}
         Time=json.dumps(Time)
@@ -77,3 +85,7 @@ class LocalNode(Node):
                 pass
         s = json.dumps(s)
         return s
+
+class LocalNode(Node):
+    def create_service(self):
+        return  LocalService(self)

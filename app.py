@@ -3,7 +3,7 @@ from gevent.pywsgi import WSGIServer
 import click
 import requests
 import zerorpc
-from web import webapp ,_webapp
+from web import webapp
 from node import LocalNode,RemoteNode
 import psutil
 
@@ -16,7 +16,7 @@ class PsDashRunner():
         self.rpc = kwargs['rpc']
         self.local = LocalNode()
         self._nodes = {}
-        self._Node={}
+        self.Node={}
     def create_app(self):
 
         app = Flask(__name__)
@@ -29,21 +29,15 @@ class PsDashRunner():
         print(name)
         host,port= node.split(":")
         self._nodes[f'{name}:{node}']=RemoteNode(host,port)   #远端数据存储
-        self.agent(name)
+        self.Node[name] = RemoteNode(host, port)
 
-    def agent(self,name):
-        self._Node[name]={'time':LocalNode()._time()}
-        self._Node[name]['memory'] = psutil.virtual_memory()
-        self._Node[name]['Network']=LocalNode().Network()
-        self._Node[name]['Process'] = LocalNode().Process()
-        self._Node[name]['disk'] = LocalNode().Magnetic_disk()
 
     def _run_web(self):
         self.create_app()
         print('name:',self.name)
         print('PSDASH_BIND_HOST:', self.host),
         print('PSDASH_PORT:', self.port)
-        self.agent(self.name)
+        self.Node[self.name] = self.local
         self._nodes[f"{self.name}:localnode:{self.port}"]= self.local
         self.server = WSGIServer((self.host,self.port),application=self.app,)
         self.server.serve_forever()

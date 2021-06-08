@@ -1,5 +1,4 @@
-from  flask import Blueprint,current_app,request
-import jsonify
+from  flask import Blueprint,current_app,request,jsonify
 import json
 webapp = Blueprint('luoyang', __name__)
 _webapp = Blueprint('luoyang', __name__)
@@ -23,36 +22,22 @@ def nodes():
         node=node.split(":")
         a[str(node[0])]={"nodename":node[0],"ip":node[1],"port":int(node[2])}
     return str(a)
-@webapp.route("/<name>/memory")
-def memory(name):
-    memory=current_app.psdash._Node[name]['memory']
-    memory={"name":name,"Total memory":memory[1],"Memory used":memory[0],"Remaining memory":memory[3]}
-    memory = json.dumps(memory)
-    return memory
 
-@webapp.route("/<name>/time")
-def _time(name):
-    print(current_app.psdash._Node[name])
-    __time= current_app.psdash._Node[name]['time']
+@webapp.route("/<name>/<test>")
+def memory(name,test):
+    current_service=current_app.psdash.Node[name].get_service()
+    if test=="memory":
+        return current_service.memory()
+    elif test=="disk":
+        return  current_service.Magnetic_disk()
+    elif test == "time":
+        return current_service.htime()
+    elif test == "Process":
+        return  current_service.Process()
+    elif test == "Network":
+        return  current_service.Network()
 
-    return str(__time)
 
-@webapp.route("/<name>/Network")
-def Network(name):
-    _network = current_app.psdash._Node[name]['Network']
-
-    return _network
-@webapp.route("/<name>/Process")
-def Process(name):
-    _Process = current_app.psdash._Node[name]['Process']
-
-    return _Process
-
-@webapp.route("/<name>/disk")
-def _disk(name):
-    disk = current_app.psdash._Node[name]['disk']
-
-    return disk
 
 
 
