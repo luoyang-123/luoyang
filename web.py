@@ -32,7 +32,8 @@ def memory(name):
 
 @webapp.route("/<name>/time")
 def _time(name):
-    __time= current_app.psdash._Node[name][_time]
+    print(current_app.psdash._Node[name])
+    __time= current_app.psdash._Node[name]['time']
 
     return str(__time)
 

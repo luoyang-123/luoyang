@@ -17,8 +17,6 @@ class PsDashRunner():
         self.local = LocalNode()
         self._nodes = {}
         self._Node={}
-        self._memory= {}
-
     def create_app(self):
 
         app = Flask(__name__)
@@ -37,7 +35,6 @@ class PsDashRunner():
         self._Node[name]['Network']=LocalNode().Network()
         self._Node[name]['Process'] = LocalNode().Process()
         self._Node[name]['disk'] = LocalNode().Magnetic_disk()
-        self._memory[f'{name}']=psutil.virtual_memory()
 
 
 

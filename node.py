@@ -42,16 +42,20 @@ class LocalNode(Node):
 
 
     def Network(self):
-        IO={'IO':psutil.net_io_counters()}
-        a='总的网络IO信息：'+'<br />'+str(IO)
-        return a
+        Io = psutil.net_io_counters()  # 获取网络IO的信息；
+        IO= {'bytes_sent': str(Io[0]), 'bytes_recv': str(Io[1]), 'packets_sent': str(Io[2]), 'packets_recv': str(Io[3]),
+                'errin': str(Io[4]), 'errout': str(Io[5]), 'dropin': str(Io[6]), 'dropout': str(Io[6])}
+        print(IO)
+        IO = json.dumps(IO)
+        IO='IO信息:' + '<br />'+IO
+        return IO
 
     def Magnetic_disk(self):
         P = psutil.disk_partitions()  # 获取磁盘分区的信息；
         p = '磁盘分区信息:'+'<br />'
         for i in range(len(P)):
-            disk = {'device=': P[i][0], 'mountpoint=': P[i][1], 'fstype=': P[i][2], 'opts=': P[i][3],
-                    'maxfile=': P[i][4], 'maxpath=': P[i][5]}
+            disk = {'device': str(P[i][0]), 'mountpoint': str(P[i][1]), 'fstype': str(P[i][2]), 'opts': str(P[i][3]),
+                    'maxfile': str(P[i][4]), 'maxpath': str(P[i][5])}
             disk = json.dumps(disk)
             p += str(disk)+'<br />'
         return p
