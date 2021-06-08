@@ -18,10 +18,10 @@ def register():
 
 @webapp.route("/nodes")
 def nodes():
-    a=[]
+    a={}
     for node in  current_app.psdash._nodes:
         node=node.split(":")
-        a.append({"nodename":node[0],"ip":node[1],"port":int(node[2])})
+        a[str(node[0])]={"nodename":node[0],"ip":node[1],"port":int(node[2])}
     return str(a)
 @webapp.route("/<name>/memory")
 def memory(name):

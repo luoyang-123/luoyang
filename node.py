@@ -37,7 +37,7 @@ class LocalNode(Node):
     def _time(self):
         # 转换成自然时间格式
         Time={'time':datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H: %M: %S")}
-        Time = '开机时间'+str(json.dumps(Time))
+        Time=json.dumps(Time)
         return Time
 
 
@@ -47,36 +47,33 @@ class LocalNode(Node):
                 'errin': str(Io[4]), 'errout': str(Io[5]), 'dropin': str(Io[6]), 'dropout': str(Io[6])}
         print(IO)
         IO = json.dumps(IO)
-        IO='IO信息:' + '<br />'+IO
         return IO
 
     def Magnetic_disk(self):
         P = psutil.disk_partitions()  # 获取磁盘分区的信息；
-        p = '磁盘分区信息:'+'<br />'
+        p ={}
         for i in range(len(P)):
             disk = {'device': str(P[i][0]), 'mountpoint': str(P[i][1]), 'fstype': str(P[i][2]), 'opts': str(P[i][3]),
                     'maxfile': str(P[i][4]), 'maxpath': str(P[i][5])}
-            disk = json.dumps(disk)
-            p += str(disk)+'<br />'
+            p[str(i)]=disk
+        p = json.dumps(p)
         return p
 
     def Process(self):
-        s=''
+        s={}
         index = 0
 
         for i in psutil.pids():
             try:
                 p = psutil.Process(i)
-                exe={"exe":str(p.exe())}
-                exe = json.dumps(exe)
+                exe=str(p.exe())
                 p={'name':str(p.name()),' pid':str(p.pid),' status':str(p.status())}
-                p = json.dumps(p)
-                print(p)
-                s += '进程信息:'+str(p)+'<br />'+'进程文件位置:'+str(exe)+'<br />'+'<br />'
+                s[str(index)] = {'pids':p}
+                s[str(index)]['exe'] = exe
                 index+=1
                 if index == 10:
                     break
             except:
                 pass
-
+        s = json.dumps(s)
         return s

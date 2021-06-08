@@ -20,7 +20,6 @@ class PsDashRunner():
     def create_app(self):
 
         app = Flask(__name__)
-        app.config["JSON_AS_ASCII"] = False  # 中文显示
         app.psdash = self
         app.register_blueprint(webapp)
         self.app=app
@@ -30,20 +29,21 @@ class PsDashRunner():
         print(name)
         host,port= node.split(":")
         self._nodes[f'{name}:{node}']=RemoteNode(host,port)   #远端数据存储
+        self.agent(name)
+
+    def agent(self,name):
         self._Node[name]={'time':LocalNode()._time()}
         self._Node[name]['memory'] = psutil.virtual_memory()
         self._Node[name]['Network']=LocalNode().Network()
         self._Node[name]['Process'] = LocalNode().Process()
         self._Node[name]['disk'] = LocalNode().Magnetic_disk()
 
-
-
     def _run_web(self):
         self.create_app()
         print('name:',self.name)
         print('PSDASH_BIND_HOST:', self.host),
         print('PSDASH_PORT:', self.port)
-
+        self.agent(self.name)
         self._nodes[f"{self.name}:localnode:{self.port}"]= self.local
         self.server = WSGIServer((self.host,self.port),application=self.app,)
         self.server.serve_forever()
